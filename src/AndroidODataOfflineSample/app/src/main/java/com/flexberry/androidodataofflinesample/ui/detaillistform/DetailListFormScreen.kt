@@ -26,23 +26,38 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle.State.STARTED
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.repeatOnLifecycle
 import com.flexberry.androidodataofflinesample.data.model.Detail
 import com.flexberry.androidodataofflinesample.ui.theme.listFormBottomMenu
 
 @Composable
 fun DetailListFormScreen(
     modifier: Modifier = Modifier,
-    viewModel: DetailListFormViewModel = hiltViewModel(),
-    details: List<Detail> = emptyList()
+    viewModel: DetailListFormViewModel = hiltViewModel()
 ) {
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val items by produceState<MyModelUiState>(
+        initialValue = MyModelUiState.Loading,
+        key1 = lifecycle,
+        key2 = viewModel
+    ) {
+        lifecycle.repeatOnLifecycle(state = STARTED) {
+            viewModel.uiState.collect { value = it }
+        }
+    }
+
+
     Box(
         modifier = modifier.fillMaxWidth(),
     ) {
@@ -57,8 +72,10 @@ fun DetailListFormScreen(
                 modifier = modifier
                     .padding(start = 32.dp, top = 16.dp, end = 32.dp, bottom = 16.dp)
             ) {
-                items(details) { detail ->
-                    ListItem(detail, viewModel)
+                if (items is MyModelUiState.Success) {
+                    items((items as MyModelUiState.Success).data) { detail ->
+                        ListItem(detail, viewModel)
+                    }
                 }
             }
         }
@@ -68,7 +85,6 @@ fun DetailListFormScreen(
             onBackButtonClicked = { viewModel.onBackButtonClicked() }
         )
     }
-
 }
 
 @Composable

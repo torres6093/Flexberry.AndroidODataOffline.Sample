@@ -29,6 +29,7 @@ class SynchronizationService @Inject constructor(
         masterRepository.updateMastersOffline(mastersData)
 
         val detailData = detailRepository.getDetailsOnline()
-        detailRepository.updateDetailsOffline(detailData)
+        //detailRepository.updateDetailsOffline(detailData)
+        // Над починить
     }
 }
